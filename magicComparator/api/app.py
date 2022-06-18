@@ -13,12 +13,6 @@ from magicComparator.api.middleware import error_middleware, handle_validation_e
 from magicComparator.api.payloads import AsyncGenJSONListPayload, JsonPayload
 from magicComparator.utils.pg import setup_pg
 
-
-# По умолчанию размер запроса к aiohttp ограничен 1 мегабайтом:
-# https://docs.aiohttp.org/en/stable/web_reference.html#aiohttp.web.Application
-# Размер запроса со 10 000 жителей и 2000 связей (с учетом максимальной длины
-# строк и кодировки json с параметром ensure_ascii=True) может занимать
-# ~63 мегабайт:
 MEGABYTE = 1024 ** 2
 MAX_REQUEST_SIZE = 70 * MEGABYTE
 
