@@ -14,8 +14,8 @@ from sqlalchemy import Numeric, cast, func
 from sqlalchemy.sql import Select
 
 
-CENSORED = '2BoBa1Tolya'
-DEFAULT_PG_URL = 'postgresql://postgres:2BoBa1Tolya@localhost:5432/postgres'
+CENSORED = os.getenv('POSTGRES_PASSWORD', 'postgrespwd')
+DEFAULT_PG_URL = 'postgresql://postgres1:postgrespwd@localhost:5434/magic_comp_db'
 MAX_QUERY_ARGS = 32767
 MAX_INTEGER = 2147483647
 

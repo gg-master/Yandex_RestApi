@@ -28,18 +28,23 @@ postgres:
 	docker stop magicComparator-postgres || true
 	docker run --rm --detach --name=magicComparator-postgres \
 		--env POSTGRES_USER=postgres \
-		--env POSTGRES_PASSWORD=2BoBa1Tolya \
-		--env POSTGRES_DB=magicComparator \
-		--publish 5432:5432 postgres
+		--env POSTGRES_PASSWORD=postgrespwd \
+		--env POSTGRES_DB=magic_comp_db \
+		--publish 5434:5432 postgres
 
 sdist: clean
 	# официальный способ дистрибуции python-модулей
 	python3 setup.py sdist
 
 docker: sdist
+    # docker build --target=api -t yandex_rest_api:0.0.1 .
 	docker build --target=api -t $(PROJECT_NAME):$(VERSION) .
 
 upload: docker
+    # docker tag yandex_rest_api:0.0.1 mekop/yandex_rest_api:0.0.1
+    # docker tag yandex_rest_api:0.0.1 mekop/yandex_rest_api:latest
+    # docker push mekop/yandex_rest_api:0.0.1
+    # docker push mekop/yandex_rest_api:latest
 	docker tag $(PROJECT_NAME):$(VERSION) $(REGISTRY_IMAGE):$(VERSION)
 	docker tag $(PROJECT_NAME):$(VERSION) $(REGISTRY_IMAGE):latest
 	docker push $(REGISTRY_IMAGE):$(VERSION)

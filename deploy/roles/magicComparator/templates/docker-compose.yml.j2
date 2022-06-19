@@ -2,7 +2,7 @@ version: "3.4"
 services:
   postgres:
     restart: always
-    image: postgres:12
+    image: postgres:14
     environment:
       POSTGRES_USER: {{ magic_comparator_pg_user }}
       POSTGRES_PASSWORD: {{ magic_comparator_pg_password }}
@@ -17,4 +17,4 @@ services:
     ports:
       - 80:8081
     environment:
-      ANALYZER_PG_URL: postgresql://{{ magic_comparator_pg_user }}:{{ magic_comparator_pg_password }}@postgres/{{ magic_comparator_pg_dbname }}
+      MAGIC_COMPARATOR_PG_URL: postgresql://{{ magic_comparator_pg_user }}:{{ magic_comparator_pg_password }}@postgres/{{ magic_comparator_pg_dbname }}

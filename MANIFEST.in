@@ -1,3 +1,4 @@
 include README.rst
 include requirements*.txt
-include analyzer/alembic.ini
+include magicComparator/alembic.ini
+include magicComparator/db/alembic/script.py.mako
