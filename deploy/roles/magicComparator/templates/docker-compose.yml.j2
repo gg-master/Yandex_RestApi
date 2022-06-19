@@ -1,0 +1,20 @@
+version: "3.4"
+services:
+  postgres:
+    restart: always
+    image: postgres:12
+    environment:
+      POSTGRES_USER: {{ magic_comparator_pg_user }}
+      POSTGRES_PASSWORD: {{ magic_comparator_pg_password }}
+      POSTGRES_DB: {{ magic_comparator_pg_dbname }}
+    volumes:
+      - /var/lib/postgresql/data:/var/lib/postgresql/data
+
+  analyzer:
+    restart: always
+    image: {{ magic_comparator_image }}
+    command: magicComparator-api
+    ports:
+      - 80:8081
+    environment:
+      ANALYZER_PG_URL: postgresql://{{ magic_comparator_pg_user }}:{{ magic_comparator_pg_password }}@postgres/{{ magic_comparator_pg_dbname }}

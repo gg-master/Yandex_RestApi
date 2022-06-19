@@ -1,0 +1,6 @@
+---
+
+- name: restart magicComparator
+  service:
+      name: docker-compose@magicComparator
+      state: restarted

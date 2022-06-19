@@ -15,7 +15,7 @@ from sqlalchemy.sql import Select
 
 
 CENSORED = '2BoBa1Tolya'
-DEFAULT_PG_URL = 'postgresql://postgres:2BoBa1Tolya@localhost:5432/postgres_test1'
+DEFAULT_PG_URL = 'postgresql://postgres:2BoBa1Tolya@localhost:5432/postgres'
 MAX_QUERY_ARGS = 32767
 MAX_INTEGER = 2147483647
 
