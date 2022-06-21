@@ -38,8 +38,6 @@ offers_table = Table(
     Column('date', DateTime, ForeignKey('update_dates.date'), primary_key=True),
     Column('id', String, nullable=False, primary_key=True, index=True),
     Column('name', String, nullable=False),
-    Column('type', PgEnum(ShopUnitType, name='type'),
-           default=ShopUnitType.category.value.lower()),
     Column('price', Integer, nullable=False),
     Column('updated', Boolean, default=False),
 )
@@ -50,8 +48,6 @@ category_table = Table(
     Column('date', DateTime, ForeignKey('update_dates.date'), primary_key=True),
     Column('id', String, nullable=False, primary_key=True, index=True),
     Column('name', String, nullable=False),
-    Column('type', PgEnum(ShopUnitType, name='type'),
-           default=ShopUnitType.category.value.lower()),
     Column('updated', Boolean, default=False),
 )
 

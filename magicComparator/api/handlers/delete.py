@@ -16,17 +16,6 @@ class DeleteUnitView(BaseUnitView):
     URL_PATH = r'/delete/{id}'
 
     @classmethod
-    async def get_unit_type(cls, conn, uid):
-        q = select([category_table.c.type]).where(
-            category_table.c.id == uid).union(
-            select([offers_table.c.type]).where(offers_table.c.id == uid))
-
-        unit_type = await conn.fetchval(q)
-        if not unit_type:
-            raise HTTPNotFound()
-        return unit_type
-
-    @classmethod
     async def remove_offer(cls, conn, uid):
         # Если тип юнита - товар, то сначала удаляем все взаимосвязи с ним
         q = offers_parents_table.delete().where(
@@ -41,6 +30,7 @@ class DeleteUnitView(BaseUnitView):
         # Получение всех вложенных категорий
         all_children_categories = await self.pg.query(
             ALL_CATEGORIES_CHILDREN_Q.format(uid))
+
         # Формируем множество уникальных id категорий
         all_categories_ids = set(
             i.get('id') for i in all_children_categories).union([uid])

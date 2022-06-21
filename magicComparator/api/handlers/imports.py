@@ -15,7 +15,7 @@ from magicComparator.db.schema import offers_table, category_table, \
     unit_tables_association as utba, parent_tables_association as ptba
 from magicComparator.utils.pg import MAX_QUERY_ARGS
 from .base import BaseView
-from .queries import CATEGORY_QUERY
+from .queries import CATEGORY_Q
 
 
 class ImportsView(BaseView):
@@ -44,7 +44,6 @@ class ImportsView(BaseView):
                     'id': elem['id'],
                     'name': elem['name'],
                     'date': date,
-                    'type': elem['type'].lower(),
                 }
                 if elem['type'] == ShopUnitType.offer.value:
                     data.update({'price': elem.get('price')})
@@ -78,11 +77,7 @@ class ImportsView(BaseView):
     @classmethod
     async def update_parents(cls, conn, uid, parent_id, date, u_type):
         # Получаем данные родителя
-        parent_unit_q = CATEGORY_QUERY.where(and_(
-            category_table.c.id == parent_id,
-            category_table.c.updated == False,
-        ))
-        parent_unit = await conn.fetchrow(parent_unit_q)
+        parent_unit = await conn.fetchrow(CATEGORY_Q.format(parent_id))
 
         # Если не нашли, то ошибку
         if not parent_unit:
@@ -110,8 +105,8 @@ class ImportsView(BaseView):
         # Возвращаем данные родителя, чтобы последовательно обновить всех
         return (
             parent_unit['id'],
-            next(iter(parent_unit.get('parent_id')), 0),
-            parent_unit['type']
+            parent_unit['parentId'],
+            parent_unit['type'].lower()
         )
 
     async def add_unit2existed_parent(self, conn, items, date):
@@ -155,18 +150,16 @@ class ImportsView(BaseView):
                 .where(and_(
                     utba[ShopUnitType[u_type]].c.id == uid,
                     utba[ShopUnitType[u_type]].c.date != date,
-                    utba[ShopUnitType[u_type]].c.updated == False,
-            ))
+                    utba[ShopUnitType[u_type]].c.updated == False))
             await conn.execute(query)
 
             if parent_id:
                 query = category_table.update() \
                     .values({'updated': True}) \
                     .where(and_(
-                    category_table.c.id == parent_id,
-                    category_table.c.date != date,
-                    category_table.c.updated == False,
-                ))
+                        category_table.c.id == parent_id,
+                        category_table.c.date != date,
+                        category_table.c.updated == False))
                 await conn.execute(query)
 
     @docs(summary='Добавить / обновить информацию о товарах и категориях')

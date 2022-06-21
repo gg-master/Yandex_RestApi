@@ -65,7 +65,7 @@ class AsyncGenJSONListPayload(Payload):
     """
     def __init__(self, value, encoding: str = 'utf-8',
                  content_type: str = 'application/json',
-                 root_object: str = 'data',
+                 root_object: str = 'items',
                  *args, **kwargs):
         self.root_object = root_object
         super().__init__(value, content_type=content_type, encoding=encoding,

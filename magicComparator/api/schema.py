@@ -19,15 +19,6 @@ from magicComparator.db.schema import ShopUnitType
 UPDATE_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 
 
-class UpdateDateTimeBaseSchema(Schema):
-    updateDate = DateTime(format=UPDATE_DATETIME_FORMAT, required=True)
-
-    @validates('updateDate')
-    def validate_update_date(self, value: datetime):
-        if value > datetime.now():
-            raise ValidationError("Update date can't be in future")
-
-
 class ShopUnitSchema(Schema):
     id = Str(validate=Length(min=1, max=256), required=True)
     name = Str(validate=Length(min=1, max=256), required=True)
@@ -49,7 +40,8 @@ class ShopUnitSchema(Schema):
                                   f"{data['type']} mustn't have 'price'")
 
 
-class ShopUnitsImportSchema(UpdateDateTimeBaseSchema):
+class ShopUnitsImportSchema(Schema):
+    updateDate = DateTime(format=UPDATE_DATETIME_FORMAT, required=True)
     items = Nested(ShopUnitSchema, many=True, required=True,
                    validate=Length(max=10000))
 
@@ -66,6 +58,11 @@ class ShopUnitsImportSchema(UpdateDateTimeBaseSchema):
                     'id %r can`t be self-parent' % unit['id']
                 )
             units_ids.add(unit['id'])
+
+    @validates('updateDate')
+    def validate_update_date(self, value: datetime):
+        if value > datetime.now():
+            raise ValidationError("Update date can't be in future")
 
 
 class ShopUnitsImportResponseSchema(Schema):
@@ -88,8 +85,8 @@ class ShopUnitNodesResponseSchema(Schema):
     data = Nested(ShopUnitNodesSchema(), required=True)
 
 
-class ShopUnitsSalesSchema(UpdateDateTimeBaseSchema):
-    pass
+class ShopUnitsSalesSchema(Schema):
+    date = DateTime(format=UPDATE_DATETIME_FORMAT, required=True)
 
 
 class ShopUnitSalesResponseSchema(Schema):

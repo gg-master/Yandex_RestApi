@@ -27,3 +27,17 @@ class BaseUnitView(BaseView):
         ])
         if not await self.pg.fetchval(query):
             raise HTTPNotFound()
+
+    @classmethod
+    async def get_unit_type(cls, conn, uid: str) -> str:
+        q = f'''
+               SELECT 'CATEGORY' as type FROM category
+               WHERE category.id = '{uid}'
+               UNION SELECT 'OFFER' as type FROM offers
+               WHERE offers.id = '{uid}'
+           '''
+
+        unit_type = await conn.fetchval(q)
+        if not unit_type:
+            raise HTTPNotFound()
+        return unit_type
