@@ -39,10 +39,12 @@ class ShopUnitSchema(Schema):
 
     @validates_schema
     def validate_price4type(self, data, **_):
-        if data['type'] == ShopUnitType.offer.value and not data.get('price'):
+        if data['type'] == ShopUnitType.offer.value and \
+                data.get('price') is None:
             raise ValidationError(f"Unit: {data['id']} with type: "
                                   f"{data['type']} must have 'price'")
-        if data['type'] == ShopUnitType.category.value and data.get('price'):
+        if data['type'] == ShopUnitType.category.value and \
+                (data.get('price') or data.get('price') == 0):
             raise ValidationError(f"Unit: {data['id']} with type: "
                                   f"{data['type']} mustn't have 'price'")
 

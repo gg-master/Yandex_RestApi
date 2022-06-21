@@ -26,6 +26,7 @@ devenv: clean
 
 postgres:
 	docker stop magicComparator-postgres || true
+    # docker run --rm --detach --name=magicComparator-postgres --env POSTGRES_USER=postgres1 --env POSTGRES_PASSWORD=postgrespwd --env POSTGRES_DB=magic_comp_db --publish 5434:5432 postgres
 	docker run --rm --detach --name=magicComparator-postgres \
 		--env POSTGRES_USER=postgres \
 		--env POSTGRES_PASSWORD=postgrespwd \

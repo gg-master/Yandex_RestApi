@@ -8,7 +8,6 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-# API_BASEURL = "https://flows-1989.usr.yandex-academy.ru"
 API_BASEURL = "http://localhost:8081"
 
 ROOT_ID = "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1"
@@ -165,6 +164,76 @@ EXPECTED_TREE = {
     ]
 }
 
+IMPORT_BAD_BATCHES = [
+    # Отсутствует поле
+    {
+        "items": [
+            {
+                "type": "CATEGORY",
+                "name": "Товары",
+                "id": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
+            }
+        ],
+        "updateDate": "2022-05-01T12:00:00.000Z"
+    },
+    # Лишнее поле
+    {
+        "items": [
+        {
+            "type": "CATEGORY",
+            "name": "Товары",
+            "id": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
+            "parentId": None,
+            "price": 0,
+        }
+    ],
+        "updateDate": "2022-05-01T12:00:00.000Z",
+    },
+    # Id родителя и юнита совпадают
+    {
+        "items": [
+            {
+                "type": "CATEGORY",
+                "name": "Товары",
+                "id": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
+                "parentId": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
+            }
+        ],
+        "updateDate": "2022-05-01T12:00:00.000Z"
+    },
+    # Неверный тип юнита
+    {
+        "items": [
+            {
+                "type": "category",
+                "name": "Товары",
+                "id": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
+                "parentId": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
+            }
+        ],
+        "updateDate": "2022-05-01T12:00:00.000Z"
+    },
+    # Неверный тип родителя
+    {
+        "items": [
+            {
+                "type": "CATEGORY",
+                "name": "Товары",
+                "id": "very-unique-category-id",
+                "parentId": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
+            },
+            {
+                "type": "OFFER",
+                "name": "smartphone1",
+                "price": 1,
+                "id": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
+                "parentId": None,
+            }
+        ],
+        "updateDate": "2022-05-01T12:00:00.000Z"
+    },
+]
+
 
 def request(path, method="GET", data=None, json_response=False):
     try:
@@ -186,9 +255,9 @@ def request(path, method="GET", data=None, json_response=False):
             res_data = res.read().decode("utf-8")
             if json_response:
                 res_data = json.loads(res_data)
-            return (res.getcode(), res_data)
+            return res.getcode(), res_data
     except urllib.error.HTTPError as e:
-        return (e.getcode(), None)
+        return e.getcode(), None
 
 
 def deep_sort_children(node):
@@ -212,51 +281,73 @@ def print_diff(expected, response):
                     "expected.json", "response.json"])
 
 
-def test_import():
-    for index, batch in enumerate(IMPORT_BATCHES):
+def test_import_bad_req():
+    # Ошибки валидации
+    index = 0
+    for index, batch in enumerate(IMPORT_BAD_BATCHES):
         print(f"Importing batch {index}")
-        status, _ = request("/imports", method="POST", data=batch)
+        status, _ = request('/imports', method='POST', data=batch)
+        assert status == 400, f"Expected HTTP status code 400, got {status}"\
 
-        assert status == 200, f"Expected HTTP status code 200, got {status}"
+    index = iter(range(index + 1, 10))
+    # Родитель юнита не найден
+    print(f"Importing batch {next(index)}")
+    data = {
+        "items": [
+            {
+                "type": "CATEGORY",
+                "name": "Товары",
+                "id": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
+                "parentId": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1-notfound",
+            }
+        ],
+        "updateDate": "2022-05-01T12:00:00.000Z"
+    }
+
+    status, _ = request('/imports', method='POST', data=data)
+    assert status == 404, f"Expected HTTP status code 404, got {status}"
+
+    # Два импорта подряд для тестирвоания проверки существования даты
+    print(f"Importing batch {next(index)}")
+    data = {
+        "items": [
+            {
+                "type": "CATEGORY",
+                "name": "Товары",
+                "id": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
+                "parentId": None,
+            }
+        ],
+        "updateDate": "2020-05-01T12:00:00.000Z"
+    }
+    status, _ = request('/imports', method='POST', data=data)
+    assert status == 200, f"Expected HTTP status code 200, got {status}"
+
+    print(f"Importing batch {next(index)}")
+    data = {
+        "items": [
+            {
+                "type": "CATEGORY",
+                "name": "Товары",
+                "id": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
+                "parentId": None,
+            }
+        ],
+        # Дата повторилась
+        "updateDate": "2020-05-01T12:00:00.000Z"
+    }
+    status, _ = request('/imports', method='POST', data=data)
+    assert status == 400, f"Expected HTTP status code 200, got {status}"
 
     print("Test import passed.")
 
 
-def test_nodes():
-    status, response = request(f"/nodes/{ROOT_ID}", json_response=True)
-    # print(json.dumps(response, indent=2, ensure_ascii=False))
-
-    assert status == 200, f"Expected HTTP status code 200, got {status}"
-
-    deep_sort_children(response)
-    deep_sort_children(EXPECTED_TREE)
-    if response != EXPECTED_TREE:
-        print_diff(EXPECTED_TREE, response)
-        print("Response tree doesn't match expected tree.")
-        sys.exit(1)
+def test_nodes_bad():
+    # Искомого товара не существует
+    status, response = request(f"/nodes/not-found-unit-id", json_response=True)
+    assert status == 404, f"Expected HTTP status code 404, got {status}"
 
     print("Test nodes passed.")
-
-
-def test_sales():
-    params = urllib.parse.urlencode({
-        "date": "2022-02-04T00:00:00.000Z"
-    })
-    status, response = request(f"/sales?{params}", json_response=True)
-    assert status == 200, f"Expected HTTP status code 200, got {status}"
-    print("Test sales passed.")
-
-
-def test_stats():
-    params = urllib.parse.urlencode({
-        "dateStart": "2022-02-01T00:00:00.000Z",
-        "dateEnd": "2022-02-03T00:00:00.000Z"
-    })
-    status, response = request(
-        f"/node/{ROOT_ID}/statistic?{params}", json_response=True)
-
-    assert status == 200, f"Expected HTTP status code 200, got {status}"
-    print("Test stats passed.")
 
 
 def test_delete():
@@ -270,11 +361,11 @@ def test_delete():
 
 
 def test_all():
-    test_import()
-    test_nodes()
+    # test_import_bad_req()
+    test_nodes_bad()
     # test_sales()
     # test_stats()
-    test_delete()
+    # test_delete()
 
 
 def main():

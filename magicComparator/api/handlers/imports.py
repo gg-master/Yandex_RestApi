@@ -1,7 +1,8 @@
 from http import HTTPStatus
 from typing import Generator
 
-from aiohttp.web_exceptions import HTTPNotFound
+from asyncpg.exceptions import UniqueViolationError
+from aiohttp.web_exceptions import HTTPNotFound, HTTPBadRequest
 from aiohttp.web_response import Response
 from aiohttp_apispec import docs, request_schema, response_schema
 from aiomisc import chunk_list
@@ -56,8 +57,18 @@ class ImportsView(BaseView):
         """
         for elem in items:
             if elem['type'] == child_type.value:
+                if not elem.get('parentId'):
+                    continue
+
                 for parent_elem in items:
-                    if parent_elem['id'] == elem.get('parentId'):
+                    if elem['id'] != parent_elem['id'] and \
+                            parent_elem['id'] == elem.get('parentId'):
+
+                        # Проверка, что юниты имеют роидителей-категорий
+                        if parent_elem['type'] != ShopUnitType.category.value:
+                            raise HTTPBadRequest(
+                                text=f'Родителем юнита {elem["id"]} '
+                                     f'должна быть категория.')
                         yield {
                             'date': date,
                             'parent_id': parent_elem['id'],
@@ -167,10 +178,16 @@ class ImportsView(BaseView):
         async with self.pg.transaction() as conn:
             items = self.request['data']['items']
 
-            query = updateDates.insert().values(
-                {'date': self.request['data']['updateDate']}) \
-                .returning(updateDates.c.date)
-            date = await conn.fetchval(query)
+            # Проверяем, что дата выгрузки уже не существует в базе
+            try:
+                query = updateDates.insert().values(
+                    {'date': self.request['data']['updateDate']}) \
+                    .returning(updateDates.c.date)
+                date = await conn.fetchval(query)
+            except UniqueViolationError:
+                raise HTTPBadRequest(
+                    text=f'updateDate {self.request["data"]["updateDate"]} '
+                         f'уже существует.')
 
             offer_rows = self.make_shop_unit_rows(
                 items, date, ShopUnitType.offer)

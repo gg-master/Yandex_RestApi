@@ -92,7 +92,7 @@ class NodesUnitView(BaseUnitView):
         res = await conn.fetchrow(q)
 
         # Конфигурируем словарь для ответа
-        data = {i: k for i, k in res[0].items()}
+        data = {i: k for i, k in res.items()}
         data['type'] = data['type'].upper()
         data['parentId'] = next(iter(data.pop('parent_id')), None)
 
