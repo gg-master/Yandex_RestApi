@@ -28,5 +28,7 @@ COPY --from=builder /usr/share/python3/app /usr/share/python3/app
 # приложения
 RUN ln -snf /usr/share/python3/app/bin/magicComparator-* /usr/local/bin/
 
+RUN apt-install libpq-dev
+
 # Устанавливаем выполняемую при запуске контейнера команду по умолчанию
-CMD ["magicComparator-api"]
+CMD magicComparator-db revision --message="init" --autogenerate ; magicComparator-db upgrade head ; magicComparator-api

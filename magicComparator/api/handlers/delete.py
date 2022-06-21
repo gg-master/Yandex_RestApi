@@ -1,20 +1,13 @@
-import pprint
 from http import HTTPStatus
-from typing import Generator
 
 from aiohttp.web_exceptions import HTTPNotFound
 from aiohttp.web_response import Response
-from aiohttp_apispec import docs, request_schema, response_schema
-from aiomisc import chunk_list
-from sqlalchemy import select, and_, exists, or_
-from sqlalchemy.testing import in_
+from aiohttp_apispec import docs, response_schema
+from sqlalchemy import select, or_
 
-from magicComparator.api.schema import DeleteUnitSchema, \
-    DeleteUnitResponseSchema
+from magicComparator.api.schema import DeleteUnitResponseSchema
 from magicComparator.db.schema import offers_table, category_table, \
-    category_parents_table, offers_parents_table, ShopUnitType, updateDates, \
-    unit_tables_association as utba, parent_tables_association as ptba
-from magicComparator.utils.pg import MAX_QUERY_ARGS
+    category_parents_table, offers_parents_table, ShopUnitType
 from .base import BaseUnitView
 from .queries import ALL_CATEGORIES_CHILDREN_Q, ALL_OFFERS_CHILDREN_Q
 
@@ -100,7 +93,6 @@ class DeleteUnitView(BaseUnitView):
         # Транзакция требуется чтобы в случае ошибки (или отключения клиента,
         # не дождавшегося ответа) откатить частично добавленные изменения.
         async with self.pg.transaction() as conn:
-
             # Удаление юнита и связанных с ним детей
             await self.remove_unit_from_all(conn, self.unit_id)
 
