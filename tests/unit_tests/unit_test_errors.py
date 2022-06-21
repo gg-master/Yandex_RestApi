@@ -8,7 +8,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-API_BASEURL = "http://localhost:8081"
+API_BASEURL = "https://flows-1989.usr.yandex-academy.ru"
+# API_BASEURL = "http://localhost:8081"
 
 ROOT_ID = "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1"
 
@@ -361,10 +362,8 @@ def test_delete():
 
 
 def test_all():
-    # test_import_bad_req()
+    test_import_bad_req()
     test_nodes_bad()
-    # test_sales()
-    # test_stats()
     # test_delete()
 
 
