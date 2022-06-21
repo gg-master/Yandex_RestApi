@@ -32,7 +32,7 @@ setup(
     author_email=module.__email__,
     license=module.__license__,
     description=module.__doc__,
-    long_description=open('README.md').read(),
+    long_description=open('README.md', encoding='utf-8').read(),
     url='https://github.com/gg-master/Yandex_RestApi',
     platforms='all',
     classifiers=[
