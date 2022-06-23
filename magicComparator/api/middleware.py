@@ -34,17 +34,17 @@ def format_http_error(http_error_cls, message: Optional[str] = None,
         error['fields'] = fields
 
     if method and status is HTTPMethodNotAllowed:
-        return http_error_cls(body={'error': error}, method=method,
+        return http_error_cls(body=error, method=method,
                               allowed_methods=allowed_methods)
-    return http_error_cls(body={'error': error})
+    return http_error_cls(body=error)
 
 
 def handle_validation_error(error: ValidationError, *_):
     """
     Представляет ошибку валидации данных в виде HTTP ответа.
     """
-    raise format_http_error(HTTPBadRequest, 'Request validation has failed',
-                            error.messages)
+    raise format_http_error(HTTPBadRequest, 'Validation Failed')
+                            # error.messages)
 
 
 @middleware

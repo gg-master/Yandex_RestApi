@@ -1,5 +1,6 @@
 import json
 from datetime import date
+from decimal import Decimal
 from functools import partial, singledispatch
 from typing import Any
 
@@ -7,7 +8,7 @@ from aiohttp.payload import JsonPayload as BaseJsonPayload, Payload
 from aiohttp.typedefs import JSONEncoder
 from asyncpg import Record
 
-from magicComparator.api.schema import UPDATE_DATETIME_FORMAT
+from magicComparator.api.schema import DATETIME_FORMAT
 
 
 @singledispatch
@@ -37,7 +38,12 @@ def convert_date(value: date):
     отобразить дату рождения. Для отображения даты рождения должен
     использоваться формат ДД.ММ.ГГГГ.
     """
-    return value.strftime(UPDATE_DATETIME_FORMAT)[:-4] + 'Z'
+    return value.strftime(DATETIME_FORMAT)[:-4] + 'Z'
+
+
+@convert.register(Decimal)
+def convert_decimal(value: Decimal):
+    return int(value)
 
 
 dumps = partial(json.dumps, default=convert, ensure_ascii=False)
@@ -48,6 +54,7 @@ class JsonPayload(BaseJsonPayload):
     Заменяет функцию сериализации на более "умную" (умеющую упаковывать в JSON
     объекты asyncpg.Record и другие сущности).
     """
+
     def __init__(self,
                  value: Any,
                  encoding: str = 'utf-8',
@@ -63,6 +70,7 @@ class AsyncGenJSONListPayload(Payload):
     Итерируется по объектам AsyncIterable, частями сериализует данные из них
     в JSON и отправляет клиенту.
     """
+
     def __init__(self, value, encoding: str = 'utf-8',
                  content_type: str = 'application/json',
                  root_object: str = 'items',

@@ -16,7 +16,7 @@ from marshmallow.validate import Length, OneOf, Range
 from magicComparator.db.schema import ShopUnitType
 
 
-UPDATE_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
+DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 
 
 class ShopUnitSchema(Schema):
@@ -41,7 +41,7 @@ class ShopUnitSchema(Schema):
 
 
 class ShopUnitsImportSchema(Schema):
-    updateDate = DateTime(format=UPDATE_DATETIME_FORMAT, required=True)
+    updateDate = DateTime(format=DATETIME_FORMAT, required=True)
     items = Nested(ShopUnitSchema, many=True, required=True,
                    validate=Length(max=10000))
 
@@ -86,7 +86,7 @@ class ShopUnitNodesResponseSchema(Schema):
 
 
 class ShopUnitsSalesSchema(Schema):
-    date = DateTime(format=UPDATE_DATETIME_FORMAT, required=True)
+    date = DateTime(format=DATETIME_FORMAT, required=True)
 
 
 class ShopUnitSalesResponseSchema(Schema):
@@ -94,16 +94,15 @@ class ShopUnitSalesResponseSchema(Schema):
 
 
 class ShopUnitStatSchema(Schema):
-    id = Str(validate=Length(min=1, max=256), required=True)
-    start_date = DateTime()
-    end_date = DateTime()
+    dateStart = DateTime(format=DATETIME_FORMAT)
+    dateEnd = DateTime(format=DATETIME_FORMAT)
 
     @validates_schema
     def validate_date_interval(self, data, **_):
-        if 'end_data' in data and data['end_data'] > datetime.now():
+        if 'dateEnd' in data and data['dateEnd'] > datetime.now():
             raise ValidationError("dateEnd can't be in future")
-        if 'end_data' in data and 'start_date' in data and \
-                data['end_data'] < data['start_date']:
+        if 'dateEnd' in data and 'dateStart' in data and \
+                data['dateEnd'] < data['dateStart']:
             raise ValidationError("dateEnd can't be earlier than dateStart")
 
 
