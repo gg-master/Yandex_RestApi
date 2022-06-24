@@ -55,7 +55,7 @@ AVG_PRICE_Q = '''
             JOIN categories_ids ON cp.parent_id = categories_ids.id
         WHERE c.updated = false
     )
-    SELECT avg(price) 
+    SELECT floor(avg(price)) 
     FROM offers_parents JOIN offers ON offers.id = offers_parents.child_id
     WHERE offers.updated = false AND offers_parents.parent_id IN 
     (SELECT id FROM categories_ids) OR offers_parents.parent_id = '{0}'
