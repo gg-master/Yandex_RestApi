@@ -287,7 +287,7 @@ def test_all():
     test_nodes()
     test_sales()
     test_stats()
-    # test_delete()
+    test_delete()
 
 
 def main():

@@ -65,9 +65,7 @@ class ImportsView(BaseView):
 
                         # Проверка, что юниты имеют роидителей-категорий
                         if parent_elem['type'] != ShopUnitType.category.value:
-                            raise HTTPBadRequest(
-                                text=f'Родителем юнита {elem["id"]} '
-                                     f'должна быть категория.')
+                            raise HTTPBadRequest(text='Validation Failed')
                         yield {
                             'date': date,
                             'parent_id': parent_elem['id'],
@@ -120,6 +118,11 @@ class ImportsView(BaseView):
         for elem in items:
             uid, u_type = elem['id'], elem['type'].lower()
             parent_id = elem['parentId']
+
+            # Проверяем, что в parentId не указан id существующего товара.
+            if await self.pg.fetchval(select([exists().where(
+                    offers_table.c.id == parent_id)])):
+                raise HTTPBadRequest(text='Validation Failed')
 
             # Добавлям актуальных родителей для юнита (обновляем их)
             while parent_id:
