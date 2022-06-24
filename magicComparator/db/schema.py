@@ -1,7 +1,7 @@
 from enum import Enum, unique
 
 from sqlalchemy import (
-    Column, Enum as PgEnum, Integer, Boolean, DateTime,
+    Column, Integer, Boolean, DateTime,
     MetaData, String, Table, ForeignKey, ForeignKeyConstraint
 )
 
@@ -31,11 +31,11 @@ updateDates = Table(
     Column('date', DateTime, unique=True, index=True)
 )
 
-
 offers_table = Table(
     'offers',
     metadata,
-    Column('date', DateTime, ForeignKey('update_dates.date'), primary_key=True),
+    Column('date', DateTime, ForeignKey('update_dates.date'),
+           primary_key=True),
     Column('id', String, nullable=False, primary_key=True, index=True),
     Column('name', String, nullable=False),
     Column('price', Integer, nullable=False),
@@ -45,7 +45,8 @@ offers_table = Table(
 category_table = Table(
     'category',
     metadata,
-    Column('date', DateTime, ForeignKey('update_dates.date'), primary_key=True),
+    Column('date', DateTime, ForeignKey('update_dates.date'),
+           primary_key=True),
     Column('id', String, nullable=False, primary_key=True, index=True),
     Column('name', String, nullable=False),
     Column('updated', Boolean, default=False),

@@ -1,14 +1,11 @@
 from http import HTTPStatus
 from typing import Dict
 
-from aiohttp.web_exceptions import HTTPNotFound
 from aiohttp.web_response import Response
 from aiohttp_apispec import docs, response_schema
-from sqlalchemy import select
 
 from magicComparator.api.schema import ShopUnitNodesResponseSchema
-from magicComparator.db.schema import offers_table, category_table, \
-    ShopUnitType
+from magicComparator.db.schema import ShopUnitType
 from .base import BaseUnitView
 from .queries import NOT_UPDATED_CATEGORIES_CHILDREN_Q, \
     NUP_OFFERS_CHILD_Q, AVG_PRICE_Q, \
@@ -45,8 +42,6 @@ class NodesUnitView(BaseUnitView):
 
             pre_res['price'] = await self.pg.fetchval(
                 AVG_PRICE_Q.format(pre_res['id']))
-            pre_res['price'] = int(pre_res['price']) if pre_res[
-                'price'] else None
 
             pre_res['children'] = []
 
@@ -71,7 +66,6 @@ class NodesUnitView(BaseUnitView):
         # Конфигурируем выходное дерево
         data = {i: k for i, k in curr_category[0].items()}
         data['price'] = await self.pg.fetchval(AVG_PRICE_Q.format(uid))
-        data['price'] = int(data['price']) if data['price'] else None
         data['children'] = []
 
         # # Добавляем детей для искомого объекта

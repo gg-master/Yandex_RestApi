@@ -256,6 +256,19 @@ def test_stats():
         f"/node/{ROOT_ID}/statistic?{params}", json_response=True)
 
     assert status == 200, f"Expected HTTP status code 200, got {status}"
+
+    status, response = request(
+        f"/node/not-found-unit-id/statistic", json_response=True)
+    assert status == 404, f"Expected HTTP status code 404, got {status}"
+
+    params = urllib.parse.urlencode({
+        "dateStart": "2022-02-01T00:00:00.000",
+        "dateEnd": "2022-02-03T00:00:00.000Z"
+    })
+    status, response = request(
+        f"/node/{ROOT_ID}/statistic?{params}", json_response=True)
+    assert status == 400, f"Expected HTTP status code 400, got {status}"
+
     print("Test stats passed.")
 
 
@@ -274,7 +287,7 @@ def test_all():
     test_nodes()
     test_sales()
     test_stats()
-    test_delete()
+    # test_delete()
 
 
 def main():
