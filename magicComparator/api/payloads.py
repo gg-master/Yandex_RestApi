@@ -33,11 +33,6 @@ def convert_asyncpg_record(value: Record):
 
 @convert.register(date)
 def convert_date(value: date):
-    """
-    В проекте объект date возвращается только в одном случае - если необходимо
-    отобразить дату рождения. Для отображения даты рождения должен
-    использоваться формат ДД.ММ.ГГГГ.
-    """
     return value.strftime(DATETIME_FORMAT)[:-4] + 'Z'
 
 
