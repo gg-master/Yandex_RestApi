@@ -33,16 +33,20 @@ class UnitStatView(BaseUnitView):
 
     @docs(summary='Получить статистику обновления юнитов за указанный период.')
     @request_schema(ShopUnitStatSchema())
-    @response_schema(ShopUnitStatResponseSchema(), code=HTTPStatus.OK)
+    @response_schema(ShopUnitStatResponseSchema(), code=HTTPStatus.OK.value)
     async def get(self):
+        # Конечную дату берем из запроса или, если ее нет, то текущую
         date_end: datetime = self.request['data'].get(
             'dateEnd', datetime.now())
+
+        # Начальную дату из запроса, или, если ее нет, то минимальную дату
         date_start: datetime = self.request['data'].get(
             'dateStart', datetime.strptime('0001-01-01T01:00:00.000Z',
                                            DATETIME_FORMAT))
         uid = self.unit_id
 
         u_type = await self.get_unit_type(self.pg, uid)
+
         body = {}
         if u_type.upper() == ShopUnitType.offer.value:
             body = SelectQuery(OFFER_STAT_Q.format(

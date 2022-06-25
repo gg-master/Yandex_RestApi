@@ -93,6 +93,7 @@ class ImportsView(BaseView):
             })
             await conn.execute(q)
 
+        # Создавали ли связь для обновленного родителя
         if not await conn.fetchval(select([exists().where(
                 and_(ptba[ShopUnitType[u_type]].c.date == date,
                      ptba[ShopUnitType[u_type]].c.child_id == uid))])):
@@ -100,7 +101,9 @@ class ImportsView(BaseView):
                 {'date': date, 'parent_id': parent_id, 'child_id': uid}
             )
             await conn.execute(q)
-        # Возвращаем данные родителя, чтобы последовательно обновить всех
+
+        # Возвращаем данные родителя,
+        # чтобы последовательно обновить всех родителей
         return (
             parent_unit['id'],
             parent_unit['parentId'],
@@ -110,10 +113,9 @@ class ImportsView(BaseView):
     async def add_unit2existed_parent(self, conn, items, date):
         """
         Добавление новых юнитов к их уже существующим родителям.
-        :param conn:
-        :param items:
-        :param date:
-        :return:
+        :param conn: SAConnection to db
+        :param items: list with items
+        :param date: update datetime
         """
         for elem in items:
             uid, u_type = elem['id'], elem['type'].lower()
@@ -137,12 +139,10 @@ class ImportsView(BaseView):
     @classmethod
     async def mark_updated_old_units(cls, conn, items, date):
         """
-        Отмечаем старые юниты как обновленные.
-        Учитываем также и их родителя.
-        :param conn:
-        :param items:
-        :param date:
-        :return:
+        Отмечаем старые юниты как обновленные. Учитываем также и их родителя.
+        :param conn: SAConnection to db
+        :param items: list with items
+        :param date: update datetime
         """
         for elem in items:
             uid, u_type = elem['id'], elem['type'].lower()
@@ -167,7 +167,7 @@ class ImportsView(BaseView):
 
     @docs(summary='Добавить / обновить информацию о товарах и категориях')
     @request_schema(ShopUnitsImportSchema())
-    @response_schema(ShopUnitsImportResponseSchema(), code=HTTPStatus.OK)
+    @response_schema(ShopUnitsImportResponseSchema(), code=HTTPStatus.OK.value)
     async def post(self):
         # Транзакция требуется чтобы в случае ошибки (или отключения клиента,
         # не дождавшегося ответа) откатить частично добавленные изменения.
@@ -176,6 +176,7 @@ class ImportsView(BaseView):
 
             # Проверяем, что дата выгрузки уже не существует в базе
             try:
+                # Добавляем новую дату выгрузки
                 query = updateDates.insert().values(
                     {'date': self.request['data']['updateDate']}) \
                     .returning(updateDates.c.date)

@@ -15,7 +15,13 @@ from .queries import NOT_UPDATED_CATEGORIES_CHILDREN_Q, \
 class NodesUnitView(BaseUnitView):
     URL_PATH = r'/nodes/{id}'
 
-    async def config_category(self, category, children_buf):
+    async def config_category(self, category, children_buf) -> Dict:
+        """
+        Добавляет в переданную категорию ее детей-товаров и вложенные категории
+        :param category: Категория, к которой нужно добавить детей
+        :param children_buf: Буффер с вычесленными ранее категориями
+        :return: category с детьми
+        """
         cid = category['id']
 
         # Добавляем товары категории
@@ -27,10 +33,14 @@ class NodesUnitView(BaseUnitView):
         category['children'].extend(children_buf.get(cid, []))
         return category
 
-    async def config_children4head(self, data):
-        # Получение всех вложенных категорий
+    async def config_children4head(self, head_category):
+        """
+        Конфигурирует дерево для искомой категории
+        :param head_category: Категория, по которой составляется статистика
+        """
+        # Получение всех вложенных категорий в упорядоченном формате
         categories = await self.pg.query(
-            NOT_UPDATED_CATEGORIES_CHILDREN_Q.format(data['id']))
+            NOT_UPDATED_CATEGORIES_CHILDREN_Q.format(head_category['id']))
 
         # Временный буфер для хранения вложенных детей
         children = {}  # {parent_id: [child1, child2]}
@@ -40,6 +50,7 @@ class NodesUnitView(BaseUnitView):
             # Конфигурируем данные категории-ребенка
             pre_res = {i: k for i, k in categories[i].items()}
 
+            # Высчитываем среднюю цену для категории
             pre_res['price'] = await self.pg.fetchval(
                 AVG_PRICE_Q.format(pre_res['id']))
 
@@ -48,15 +59,22 @@ class NodesUnitView(BaseUnitView):
             # Добавляем детей-товаров для категории
             await self.config_category(pre_res, children)
 
+            # Добавляем сконфигурированную категорию в буфер
             if pre_res['parentId'] not in children:
                 children[pre_res['parentId']] = [pre_res.copy()]
             else:
                 children[pre_res['parentId']].append(pre_res.copy())
 
-        await self.config_category(data, children)
+        await self.config_category(head_category, children)
 
     @classmethod
     async def get_offers_nodes(cls, conn, uid: str) -> Dict:
+        """
+        Возвращает статистику по товару
+        :param conn: SAConnection to db
+        :param uid: offer uuid
+        :return: Dictionary with offer params
+        """
         return dict(await conn.fetchrow(OFFERS_Q.format(uid)))
 
     async def get_category_nodes(self, uid: str) -> Dict:
@@ -89,7 +107,7 @@ class NodesUnitView(BaseUnitView):
             return await self.get_category_nodes(uid)
 
     @docs(summary='Получить информацию о юните по его id.')
-    @response_schema(ShopUnitNodesResponseSchema(), code=HTTPStatus.OK)
+    @response_schema(ShopUnitNodesResponseSchema(), code=HTTPStatus.OK.value)
     async def get(self):
         async with self.pg.transaction() as conn:
             # Получение юнита и всех его вложенных детей

@@ -1,9 +1,8 @@
 from http import HTTPStatus
 
-from aiohttp.web_exceptions import HTTPNotFound
 from aiohttp.web_response import Response
 from aiohttp_apispec import docs, response_schema
-from sqlalchemy import select, or_
+from sqlalchemy import or_
 
 from magicComparator.api.schema import DeleteUnitResponseSchema
 from magicComparator.db.schema import offers_table, category_table, \
@@ -78,7 +77,7 @@ class DeleteUnitView(BaseUnitView):
             await self.remove_category(conn, uid)
 
     @docs(summary='Удалить всю информацию юнита')
-    @response_schema(DeleteUnitResponseSchema(), code=HTTPStatus.OK)
+    @response_schema(DeleteUnitResponseSchema(), code=HTTPStatus.OK.value)
     async def delete(self):
         # Транзакция требуется чтобы в случае ошибки (или отключения клиента,
         # не дождавшегося ответа) откатить частично добавленные изменения.

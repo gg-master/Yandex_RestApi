@@ -16,11 +16,15 @@ class SalesOffersView(BaseUnitView):
 
     @docs(summary='Получить все обновленные товары за сутки.')
     @request_schema(ShopUnitsSalesSchema())
-    @response_schema(ShopUnitSalesResponseSchema(), code=HTTPStatus.OK)
+    @response_schema(ShopUnitSalesResponseSchema(), code=HTTPStatus.OK.value)
     async def get(self):
+        # Конечную дату берем из запроса
         date_end: datetime = self.request['data']['date']
+        # Начальную высчитываем
         date_start: datetime = date_end - timedelta(days=1)
 
+        # Получаем акутальное состояние товаров,
+        # которые обновлялись за указанный промежуток
         query = OFFERS_SALES_Q.format(date_start=date_start,
                                       date_end=date_end)
         body = SelectQuery(query, self.pg.transaction())
